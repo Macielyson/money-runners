@@ -2,9 +2,7 @@
 import AWS from 'aws-sdk';
 import 'dotenv/config'
 // poderia colocar essas chave em outro lugar.
-/*
 
-*/
 export default {
     IAM_USER_KEY: process.env.IAM_USER_KEY,
     IAM_USER_SECRET: process.env.IAM_USER_SECRET,
