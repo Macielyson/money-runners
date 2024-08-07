@@ -1,19 +1,19 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import Busboy from 'busboy'; // fazer upload/receber arquivos
-// import bcrypt from 'bcrypt'; // criptar senhas
+import bcrypt from 'bcrypt'; // criptar senhas
 // import moment from 'moment'; // trabalha com datas
 
 import aws from '../services/aws.js'; // aqui é node nao react
 //import pagarme from '../services/pagarme.js';
 
-//import User from '../models/user.js';
+import User from '../models/user.js';
 //import Challenge from '../models/challenge.js';
 //import UserChallenge from '../models/relationship/userChallenge.js';
 //import Tracking from '../models/tracking.js';
 const router = express.Router();
 
-
+// ROTA DE CONVITE OK
 router.post('/', async (req, res) => {
   const busboy = new Busboy({ headers: req.headers }); // recebe header da requisiçap
   // on quando acabar o upload, cai na funçao aqui  
@@ -54,16 +54,15 @@ router.post('/', async (req, res) => {
       }
 */
       // CRIAR SENHA COM BCRYPT
-      // const password = await bcrypt.hash(req.body.password, 10);
-      /*
-            const user = await new User({
-              ...req.body,
-              _id: userId,
-              password,
-              photo,
-            }).save();
-      */
-      res.json({ error: false, message: "Upload deito com sucesso" });
+      const password = await bcrypt.hash(req.body.password, 10); // p password é um heache.
+      const user = await new User({
+        ...req.body,
+        _id: userId,
+        password,
+        photo,
+      }).save();
+
+      res.json({ user });
     } catch (err) {
       res.json({ error: true, message: err.message });
 
@@ -71,22 +70,28 @@ router.post('/', async (req, res) => {
   });
   req.pipe(busboy); // resposta
 });
-/*
+
+
+// ROTA DE LOGIN
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    // Achar o usuario onde email for igual a email e status igual a A
     const user = await User.findOne({
       email,
       status: 'A',
     });
 
+    // se nao tiver usuario
     if (!user) {
       res.json({ error: true, message: 'Nenhum e-mail ativo encontrado.' });
       return false;
     }
 
+    // se tiver verificar a senha do usuario e o hasch do banco dedados
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    // se nao bater as senhas
     if (!isPasswordValid) {
       res.json({
         error: true,
@@ -95,8 +100,8 @@ router.post('/login', async (req, res) => {
       return false;
     }
 
-    delete user.password;
-
+    delete user.password; // isso nao funcionou (nao era para retornar o passwod)
+    // se der certo
     res.json({
       user,
     });
@@ -105,6 +110,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
+/*
 router.get('/:id/challenge', async (req, res) => {
   try {
     // RECUPERAR DESAFIO ATUAL
