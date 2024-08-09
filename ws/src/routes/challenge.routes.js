@@ -1,82 +1,101 @@
 
 import express from 'express';
 // import moment from 'moment';
-import _ from 'lodash';
+// import _ from 'lodash';
 
-// import User from '../models/user.js';
-// import Challenge from '../models/challenge.js';
-// import Tracking from '../models/tracking.js';
-// import UserChallenge from '../models/relationship/userChallenge.js';
-
-// import pagarme from '../services/pagarme.js';
-// import util from '../util.js';
+import User from '../models/user.js';
+import Challenge from '../models/challenge.js';
+import Tracking from '../models/tracking.js';
+import UserChallenge from '../models/relationship/userChallenge.js';
+import pagarme from '../services/pagarme.js';
+import util from '../util.js';
 
 const router = express.Router();
-/*
+
 router.post('/join', async (req, res) => {
   try {
-    const { userId, challengeId, creditCard } = req.body;
+    const { userId, challengeId, payments } = req.body;
 
-    // LENDO CHALLENGE E USER
+    // LENDO DADOS DO USUARIO E DESAFIO
     const user = await User.findById(userId);
     const challenge = await Challenge.findById(challengeId);
     const challengePrice = util.toCents(challenge.fee) * 10;
 
     // CRIAR TRANSAÇÃO PAGARME
-    const createPayment = await pagarme('/transactions', {
-      amount: challengePrice,
-      customer: {
-        id: user.customerId,
-      },
-      ...creditCard,
-      billing: {
-        name: 'Trinity Moss',
+    const createPayment = await pagarme('/orders', {
+      customer_id: user.customerId,
+      shipping: {
         address: {
-          country: 'br',
-          state: 'sp',
-          city: 'Cotia',
-          neighborhood: 'Rio Cotia',
-          street: 'Rua Matrix',
-          street_number: '9999',
-          zipcode: '06714360',
+          line_1: "10880, Malibu Point, Malibu Central",
+          zip_code: "90265",
+          city: "Malibu",
+          state: "CA",
+          country: "US"
         },
+        description: challenge.description,
       },
+      payments: [
+        {
+          payment_method: "credit_card",
+          credit_card: {
+            recurrence: false,
+            installments: 1,
+            statement_descriptor: "AVENGERS",
+            card: {
+              number: "4000000000000010",
+              holder_name: "Tony Stark",
+              exp_month: 1,
+              exp_year: 30,
+              cvv: "3531",
+              billing_address: {
+                line_1: "10880, Malibu Point, Malibu Central",
+                zip_code: "90265",
+                city: "Malibu",
+                state: "CA",
+                country: "US"
+              }
+            }
+          }
+        }
+      ],
       items: [
         {
-          id: challengeId,
-          title: challenge.title,
-          unit_price: challengePrice,
+          amount: challengePrice,
+          description: challenge.description,
           quantity: 1,
-          tangible: false,
-        },
-      ],
+          code: challengeId,
+        }
+      ]
     });
+
 
     if (createPayment.error) {
       throw createPayment;
     }
+    
 
-    // COLOCAR REGISTRO NO TRACKING
-    await new Tracking({
-      userId,
-      challengeId,
-      transactionId: createPayment.data.id,
-      operation: 'F', //FEE
-      amount: challenge.fee,
-    }).save();
-
-    // ATRELAR CHALLENGE AO USER
-    await new UserChallenge({
-      userId,
-      challengeId,
-    }).save();
+   // COLOCAR REGISTRO NO TRACKING
+   await new Tracking({
+     userId,
+     challengeId,
+     transactionId: createPayment.data.id,
+     operation: 'F', //FEE
+     amount: challenge.fee,
+   }).save();
+ 
+   // ATRELAR CHALLENGE (desafio) AO USER
+ 
+   await new UserChallenge({
+     userId,
+     challengeId,
+   }).save();
 
     res.json({ message: 'Desafio aceito!' });
   } catch (err) {
     res.json({ error: true, message: err.message });
   }
 });
-
+/*
 router.post('/tracking', async (req, res) => {
   try {
     const { userId, challengeId, operation } = req.body;

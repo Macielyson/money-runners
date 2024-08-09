@@ -2,18 +2,18 @@ import express from 'express';
 import mongoose from 'mongoose';
 import Busboy from 'busboy'; // fazer upload/receber arquivos
 import bcrypt from 'bcrypt'; // criptar senhas
-// import moment from 'moment'; // trabalha com datas
+import moment from 'moment'; // trabalha com datas
 
 import aws from '../services/aws.js'; // aqui é node nao react
-//import pagarme from '../services/pagarme.js';
+import pagarme from '../services/pagarme.js';
 
 import User from '../models/user.js';
-//import Challenge from '../models/challenge.js';
-//import UserChallenge from '../models/relationship/userChallenge.js';
-//import Tracking from '../models/tracking.js';
+import Challenge from '../models/challenge.js';
+import UserChallenge from '../models/relationship/userChallenge.js';
+import Tracking from '../models/tracking.js';
 const router = express.Router();
 
-// ROTA DE CONVITE OK
+// ROTA DE CONVITE: INVITE (INSOMINIA)
 router.post('/', async (req, res) => {
   const busboy = new Busboy({ headers: req.headers }); // recebe header da requisiçap
   // on quando acabar o upload, cai na funçao aqui  
@@ -71,8 +71,7 @@ router.post('/', async (req, res) => {
   req.pipe(busboy); // resposta
 });
 
-
-// ROTA DE LOGIN
+// ROTA DE LOGIN: LOGIN
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -110,7 +109,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-/*
 router.get('/:id/challenge', async (req, res) => {
   try {
     // RECUPERAR DESAFIO ATUAL
@@ -198,37 +196,39 @@ router.get('/:id/challenge', async (req, res) => {
   }
 });
 
-router.get('/:id/accept', async (req, res) => {
+// ROTA DE ACEITAR O CONVITE: ACCEPT INVITE
+router.put('/:id/accept', async (req, res) => {
   try {
     const userId = req.params.id;
     const user = await User.findById(userId);
 
     const pagarmeUser = await pagarme('/customers', {
-      external_id: userId,
       name: user.name,
       type: 'individual',
-      country: 'br',
       email: user.email,
-      documents: [
-        {
-          type: 'cpf',
-          number: user.cpf,
-        },
-      ],
-      phone_numbers: ['+55' + user.phone],
-      birthday: user.birthday,
+      document: user.cpf,
+      document_type: 'cpf',
+      phones: {
+        mobile_phone: {
+          country_code: "55",
+          area_code: "99",
+          number: user.phone
+        }
+      },
+      birthdate: user.birthday,
     });
 
     if (pagarmeUser.error) {
       throw pagarmeCliente;
     }
 
+    // caso de certo, atualizar usuario ADICIONANDO customerId e status
     await User.findByIdAndUpdate(userId, {
       customerId: pagarmeUser.data.id,
       status: 'A',
     });
-
-    // ENVIAR PUSH NOTIFICATION
+    // holback é interessante quando voce tem mais de uma opeçao no banco por rota
+    // ENVIAR PUSH NOTIFICATION ou EMAIL ou SMS
     res.json({ message: 'Usuário aceito na plataforma' });
   } catch (err) {
     res.json({ error: true, message: err.message });
@@ -258,5 +258,5 @@ router.get('/:id/balance', async (req, res) => {
     res.json({ error: true, message: err.message });
   }
 });
-*/
+
 export default router;
