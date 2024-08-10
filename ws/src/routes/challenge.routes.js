@@ -1,7 +1,7 @@
 
 import express from 'express';
-// import moment from 'moment';
-// import _ from 'lodash';
+import moment from 'moment';
+import _ from 'lodash';
 
 import User from '../models/user.js';
 import Challenge from '../models/challenge.js';
@@ -95,7 +95,8 @@ router.post('/join', async (req, res) => {
     res.json({ error: true, message: err.message });
   }
 });
-/*
+
+// ROTA REGISTRAR A ATIVIDADE
 router.post('/tracking', async (req, res) => {
   try {
     const { userId, challengeId, operation } = req.body;
@@ -114,18 +115,20 @@ router.post('/tracking', async (req, res) => {
     if (!existentTracking) {
       await new Tracking(req.body).save();
     }
-    res.json({ message: 'Desafio aceito!' });
+    res.json({ message: 'Evento Registrado!' });
   } catch (err) {
     res.json({ error: true, message: err.message });
   }
 });
 
+// ULTIMA ROTA DE RANKING
 router.get('/:id/ranking', async (req, res) => {
   try {
     const challengeId = req.params.id;
 
     const challenge = await Challenge.findById(challengeId);
 
+    //PERIODO ATUAL, PERIODO OTTLA
     const dayStart = moment(challenge.date.start, 'YYYY-MM-DD');
     const dayEnd = moment(challenge.date.end, 'YYYY-MM-DD');
     const challengePeriod = dayEnd.diff(dayStart, 'days');
@@ -164,5 +167,5 @@ router.get('/:id/ranking', async (req, res) => {
     res.json({ error: true, message: err.message });
   }
 });
-*/
+
 export default router;

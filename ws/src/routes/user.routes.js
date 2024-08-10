@@ -108,7 +108,7 @@ router.post('/login', async (req, res) => {
     res.json({ error: true, message: err.message });
   }
 });
-
+// ROTA PARA TELA INICIAL, TRES TELAS QUAL DELAS ?. 
 router.get('/:id/challenge', async (req, res) => {
   try {
     // RECUPERAR DESAFIO ATUAL
@@ -134,6 +134,7 @@ router.get('/:id/challenge', async (req, res) => {
     const challengePeriod = dayEnd.diff(dayStart, 'days');
     const currentPeriod = moment().diff(dayStart.subtract(1, 'day'), 'days');
 
+    // valor diario
     const dailyAmount = challenge.fee / challengePeriod;
 
     // VERIFICAR QUANTAS VEZES ELE PARTICIPOU
@@ -235,14 +236,17 @@ router.put('/:id/accept', async (req, res) => {
   }
 });
 
+// RORA DE SAQUE
 router.get('/:id/balance', async (req, res) => {
   try {
     const userId = req.params.id;
 
+    // reordenar dos antigos para os mais novos.
     const records = await Tracking.find({
       userId,
     }).sort([['register', -1]]);
 
+    // somar o saldo total.
     const balance = records
       .filter((t) => t.operation === 'G')
       .reduce((total, t) => {
